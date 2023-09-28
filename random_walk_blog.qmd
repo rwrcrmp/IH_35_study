@@ -1,0 +1,90 @@
+---
+title: "Simulating Traffic Data"
+author: "Robert Crump"
+date: "July 3, 2023"
+toc: true
+format:
+  html:
+    theme: darkly
+    code-fold: true
+    self-contained: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo=TRUE, 
+                      warning=FALSE,
+                      message=FALSE,
+                      fig.align='center',
+                      fig.width=9,
+                      fig.height=6)
+
+## load libraries
+libs <- c("tidyverse", "sf")
+
+lapply(libs, library, character.only = T)
+
+rm(libs)
+
+# load datasets
+atx_hex <- st_read("Desktop/IH_35_study/data/created_files/atx_hex/atx_hex.shp")
+```
+
+<!-- ![github](images/github-mark-white.png){width=4%} [Github repository](https://github.com/rwrcrmp/IH_35_study) -->
+
+### Introduction & Background
+
+<center> __first image__ </center>
+```{r}
+
+```
+<center> _citation_ </center>
+</br>
+
+### Data Description
+
+### Why Simulation
+
+refer back to previous blog about non-static nature of traffic flows.
+
+I was thinking about doing a distance-decay thing, but that is still rather locked down to static modeling and identifying clusters.
+
+when you start to factor in stuff like vmt/crashes ratios it's like pretty subjective/ arbitrary to say something analytical about a highly complex space.
+
+in other words, space is space and is full of all sorts of complicated factors that could influence non-linear behavior of moving through that space.
+
+merely identifying clusters of events that result from that behavior collapses/ abstracts that complexity and behavior without actually accounting for it in the model.
+
+simulation allows us to approximate complex behavior among a dynamic population and reduce dimensional without sacrificing the useful content.
+
+<center> __second image__ </center>
+```{r}
+
+```
+<center> _citation_ </center>
+</br>
+
+### Building Simulation
+
+bit by bit, 1) sample hexes 2) find neighbors ...etc
+
+coding challenges
+
+learning about idexing
+
+executing two level recursion
+
+### Remaining Challenges
+
+eliminate backtracking when pathfinding
+
+
+
+
+
+
+
+
+
+
+
+

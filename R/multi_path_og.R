@@ -26,29 +26,19 @@ multi_path <- function(df, n.paths, n.steps){
     # loop for n.steps
     for(i in 1:n.steps){
       
-      # find potential steps
-      neighbors = adjaceny_matrix[[tail(path[i], 1)]]
+      # find step
+      neighbors = adjaceny_matrix[[path[i]]]
       
-      # exclude previous steps, no backtracking
-      # imitates a single point destination trip
-      neighbors = neighbors[!neighbors %in% path]
-      
-      # choose forward step
+      # take step
       nth.step = sample(neighbors, 1)
       
-      # append step to path
+      # store and append step to path
       path = c(path, nth.step)
     }
-    
-    # remove final step to match user input
-    # start_pts[i] counts as step 1
-    # might be a better way to do this
-    path = tail(path, -1)
-    
     return(path)
   }
   
-  ## compile loops into list
+  # compile loops into list
   paths_list <- lapply(start_pts, single_path)
   
   # assign names to list
