@@ -31,7 +31,7 @@ atx_walks <- atx_hex |>
 
 # test plot
 atx_walks |>
-  filter(walk == "walk_5") |>
+  # filter(walk == "walk_5") |>
   ggplot() +
   geom_sf(aes(fill = walk)) +
   theme_void()

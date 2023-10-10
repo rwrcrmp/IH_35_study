@@ -37,7 +37,7 @@ atx_hex <- st_read("data/created_files/atx_hex/atx_hex.shp")
 
 ### Introduction & Background
 
-It's taken me longer than expected to code the next step in my traffic analysis study. I kept wrestling with the discomfort of modeling traffic through static events (crashes). In my [previous blog post](https://rwrcrmp.github.io/site/download_sources/crash_counts_atx.html), I demonstrated how to subdivide an area into a hex grid and aggregate points within each hex. Identifying clusters in a flattened environment is a superficial analysis, but evaluating a statistical measure requires more sophistication. Areas of study are complex geographic and social spaces that contain, among many other things, complex behavior among large populations. In this case, the Austin metro area produces a traffic pattern that regenerates every day in slightly different iterations.
+It's taken me longer than expected to code the next step in my traffic analysis study. I kept wrestling with the discomfort of modeling traffic through event density (ie. car crashes). In my [previous blog post](https://rwrcrmp.github.io/site/download_sources/crash_counts_atx.html), I demonstrated how to subdivide an area into a hex grid and aggregate points within each hex. Identifying clusters in a flattened environment is a superficial analysis, but evaluating a statistical measure requires more sophistication. Areas of study are complex geographic and social spaces that contain, among many other things, complex behavior among large populations. In this case, the Austin metro area produces a traffic pattern that regenerates every day in slightly different iterations.
 
 I recently stumbled upon a solution that has mostly allayed my concerns. Thanks to the YouTube algorithm I found a tutorial by [David Robinson](https://www.youtube.com/watch?v=b1oKh9eeqkY) on how to construct a "random walk" simulation in R. After coding along with his video for a few minutes, I realized that this method could be applied in a geographic space. If I could construct a random walk over the hex grid I created, I could simulate movement through the area and associate a given path with aggregated variables within the hexes that comprise the walk. The solution I coded is not exactly a random walk, but takes some pieces of the process to execute something similar.
 
@@ -45,7 +45,7 @@ More critically, the sequence can model multiple walks from different starting p
 
 ### Pathfinding through Semi-randomness
 
-My motivation for running a simulation is to include the concept of movement in the larger analysis project. With my current dataset, I can identify clusters of events in a static environment; car crashes. That level of identification, I feel, is an insufficient model because the vehicles involved in the event did not simply appear in the same location at the same time. In a field like forestry, for instance, it may make more sense to analyze clusters of trees, which unlike cars don't regularly change location. Variance among a tree population is not a function of their previous position within the study area. Not so with cars. Simulating movement models the behavior of subjects instead of abstracting it away or ignoring it entirely.
+My motivation for running a simulation is to include the concept of movement in the larger analysis project. With my current dataset, I can identify clusters of events in a static environment. That level of identification, I feel, is an insufficient model because the vehicles involved in the event did not simply appear in the same location at the same time. In a field like forestry, for instance, it may make more sense to analyze clusters of trees, which unlike cars don't regularly change location. Variance among a tree population is not a function of their previous position within the study area. Not so with cars. Simulating movement models the behavior of subjects instead of abstracting it away or ignoring it entirely.
 
 A one dimensional random walk can be represented with an integer range, or number line. Each step along the number line is determined by a coin flip; heads + 1, tails -1. After a number of steps, a subject starting a walk from the origin 0 stops at some distance from the origin labeled by an integer. This video from PBS does a great job breaking down the basics in detail.
 
@@ -160,7 +160,7 @@ demo |>
     theme_void()
 ```
 
-This sequence is the core process within the pathfinding function. 1) locate a starting point, 2) choose a next step, 3) take the step, 4) record the previous step and next step together as a path. To repeat this sequence and chart a `single_path` through `atx_hex`, I used a `for loop`. I'm going to skip explaining some important functional details of the code chunk belwo so I can return to them when discussing the final product.
+This sequence is the core process within the pathfinding function: 1) locate a starting point, 2) choose a next step, 3) take the step, 4) record the previous step and next step together as a path. To repeat this sequence and chart a `single_path` through `atx_hex`, I used a `for loop`. I'm going to skip explaining some important functional details of the code chunk below so I can return to them when discussing the final product.
 
 ```{r single loop, eval=FALSE}
 
@@ -201,7 +201,7 @@ atx_hex |>
 
 At this point, I could stop coding. By repeating these lines of code and storing each path in a list, I could produce a simulation. There are some technical aspects that need refinement, but in principle this is the product. But I want to push myself to learn new skills. Also, for this particular project, it makes more sense to automate many walks as well as the process of recording them in a list. Instead of spending my effort generating single patterns and manually saving them to a dataset, I want a function that can receive inputs for the number of paths and number of steps then output a list of paths. 
 
-### Building Multi_path with Two Level Recursion
+### Building Multi_path with Two-Level Recursion
 
 A vector of hex IDs generated by `single_path` is a recursion that accumulates elements by referencing the previous element and executing a process. One way to generate multiple paths is to run `single_path` several times, then collect those vectors into a list.
 
@@ -232,7 +232,7 @@ trial_1 <- list(path_1, path_2, path_3)
 
 This is bad code because it requires a human to perform a repetitive task. Why else were machines created?! For the number of paths and trials I want to run, this approach is very impractical. The current construction of `multipath` seems so obvious in retrospect, but it took me two days to realize that I shouldn't be trying to generate multiple paths at the same time. After setting some parameters, `multi_path` runs `single_path` several times from different positions then collects them into a single list. To produce a trial, I need something that produces a two-level recursion across different levels of the list structure: position & contents.
 
-The user inputs for `multi_path` are 1) the dataset containing a group of tiled polygons, 2) the number of paths to generate, and 3) the number of steps to take per path. The first line in the function body assigns unique IDs to each row, so the dataframe (labeled `df` in the function) supplied to the function doesn't need to contain unique IDs. The second line creates an `adjacency_matrix` by running `sf::st_touches` against every polygon in the dataset. The `adjacency_matrix` is a critical piece of `multi_path` because it creates a list of adjacent polygons for every polygon in the dataset. It serves as a reference index in the second level (internal) recursion. The first level recursion is initiated by sampling the polygon id index `n.paths` times.
+The user inputs for `multi_path` are: 1) the dataset containing a group of tiled polygons, 2) the number of paths to generate, and 3) the number of steps to take per path. The first line in the function body assigns unique IDs to each row, so the dataframe (defined as `df` in the function arguments) supplied to the function doesn't need to contain unique IDs. The second line creates an `adjacency_matrix` by running `sf::st_touches` against every polygon in the dataset. The `adjacency_matrix` is a critical piece of `multi_path` because it creates a list of adjacent polygons for every polygon in the dataset. It serves as a reference index in the second level (internal) recursion. The first level recursion is initiated by sampling the polygon id index `n.paths` times.
 
 ```{r first level, eval=FALSE}
 # open outer function
@@ -273,7 +273,7 @@ To run the second level recursion, I define `single_path` as an anonymous functi
   }
 ```
 
-Finally, I use `lapply` to loop the `single_path` function over the `start_pts` vector to create a list of paths traveled across the hex grid plane. To close the function, we assign names to the list elements according to the order in which they were produced, then call `return()` to generate the output.
+Finally, I use `lapply` to loop the `single_path` function over the `start_pts` vector to create a list of paths traveled across the hex grid plane. To close the function, I assign names to the list elements according to the order in which they were produced, then call `return()` to generate the output.
 
 ```{r end function, eval=FALSE}
   ## compile loops into list
@@ -294,9 +294,7 @@ Finally, I use `lapply` to loop the `single_path` function over the `start_pts` 
 Running `multi_path` on a tiled set of polygons like `atx_hex` produces the following list.
 
 ```{r run multi_path, echo=FALSE}
-rm(list = ls())
-
-atx_hex <- st_read("data/created_files/atx_hex/atx_hex.shp")
+atx_hex$ID <- 1:nrow(atx_hex)
 
 source("R/multi_path.R")
 ```
@@ -313,7 +311,7 @@ Rendered as a dataframe, it looks like this.
 as.data.frame(trial_1)
 ```
 
-Using some simple `dplyr` functions, we can reshape the dataframe into an index reference, and render the paths with `ggplot`. The chart below illustrates one full trial of ten walks across the hex grid plane.
+Using some simple `dplyr` functions, we can reshape the dataframe into a reference index, and render the paths with `ggplot`. The chart below illustrates one full trial of ten walks across the hex grid plane.
 
 ```{r multi_path chart}
 atx_walks <- atx_hex |> 
@@ -322,7 +320,7 @@ atx_walks <- atx_hex |>
       as.data.frame() |> 
       pivot_longer(everything(),
                    names_to = "walk",
-                   values_to = "FID")
+                   values_to = "ID")
   )
 
 atx_walks |> 
@@ -335,4 +333,4 @@ There are a few obvious deficiencies with how the function performs as of this w
 
 I have some clues about the source of the deficiencies and where to target my debugging. The only part of the function that isn't written in base R is the `adjacency_matrix` which calls `sf::st_touches`. The function tends to fail after one or two tries, but usually corrects after I clear my IDE environment. I think this error highlights an important feature of my algorithm; it's only barely a spatial feature because of this one line of code. Processing geometries is very computationally expensive, so instead of actually travelling along the plane looking in six directions at each step, `multi_path` is uses indexing strategically to assemble groups of adjacent polygons from a larger group.
 
-The best way to think about the information being generated here is like adding 10 extra cars to a daily commute. Right now, they moves in semi-random patterns from random starting points, but in future stages of development that will be further refined. Elements of randomness in the model I have in mind simply aid in reducing supervision and over-parameterization. Adding 10 or even 100 or 1000 cars to the daily commute of Austin won't significantly increase real world traffic volume. What it does give me is a group of "trackable vehicles" whose interaction with other geo-spatial data (i.e. crashes) I can measure. To begin answering the question that motivated this project, I plan to add weights to each hex based on vehicle miles traveled and categorical variable identifying whether a hex contains the interstate highway.
+The best way to think about the information being generated here is like adding 10 extra cars to a daily commute. Right now, they moves in semi-random patterns from random starting points, but in future stages of development that will be further refined. Elements of randomness in the model I have in mind simply aid in reducing supervision and over-parameterization. Adding 10 or even 100 or 1000 cars to the daily commute of Austin won't significantly increase real world traffic volume. What it does give me is a group of "trackable vehicles" whose interaction with other geospatial data (i.e. crashes) I can measure. To begin answering the question that motivated this project, I plan to add weights to each hex based on vehicle miles traveled and categorical variable identifying whether a hex contains the interstate highway.
